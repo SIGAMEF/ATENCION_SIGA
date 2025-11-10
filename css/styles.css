@@ -1050,3 +1050,72 @@ button:focus-visible {
   outline: 2px solid #1e3a8a;
   outline-offset: 2px;
 }
+/* ========================================
+   AUTOCOMPLETADO DE EJECUTORAS
+   ======================================== */
+
+.sugerencias-ejecutoras {
+  position: absolute;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+  max-height: 350px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.sugerencias-ejecutoras::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sugerencias-ejecutoras::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.sugerencias-ejecutoras::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 4px;
+}
+
+.sugerencias-ejecutoras::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+.sugerencia-item {
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.sugerencia-item:hover {
+  background: #eff6ff !important;
+}
+
+.sugerencia-item:last-child {
+  border-bottom: none;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
