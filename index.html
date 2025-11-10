@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Nueva Atención - Mesa de Ayuda SIGA</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="wrapper">
+    <!-- Botón de menú flotante (solo en móviles) -->
+    <button class="menu-toggle animate__animated animate__pulse animate__infinite" onclick="toggleMenu()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="images/logo.png" 
+             alt="Logo SIGA" 
+             class="logo-img animate__animated animate__bounceIn"
+             onerror="this.src='https://i.postimg.cc/W37fjMM3/gat.png'">
+        <h4 class="mt-3">SIGA MEF</h4>
+        <p class="sidebar-subtitle">Mesa de Ayuda</p>
+      </div>
+      
+      <div class="sidebar-menu">
+        <a href="index.html" class="menu-item active">
+          <i class="fas fa-plus-circle"></i>
+          <span>Nueva Atención</span>
+        </a>
+        <a href="acerca.html" class="menu-item">
+          <i class="fas fa-code-branch"></i>
+          <span>Versiones SIGAMEF</span>
+        </a>
+        <a href="nosotros.html" class="menu-item">
+          <i class="fas fa-search"></i>
+          <span>Busca Tu Analista</span>
+        </a>
+        <a href="#" class="menu-item">
+          <i class="fas fa-book"></i>
+          <span>Tutoriales</span>
+        </a>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="contact-info">
+          <p><i class="fas fa-headset"></i> Soporte SIGA</p>
+          <p><i class="fas fa-phone"></i> 964 374 113</p>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Contenido principal -->
+    <div class="content">
+      <!-- Formulario Principal -->
+      <div class="container-fluid p-3" id="formContainer">
+        <div class="form-container animate__animated animate__fadeIn">
+          
+          <!-- Cabecera Compacta -->
+          <div class="form-header-compact">
+            <i class="fas fa-ticket-alt header-icon-compact"></i>
+            <h1>Generar Nueva Atención</h1>
+          </div>
+
+          <form id="ticketForm" novalidate>
+            
+            <!-- SECCIÓN ÚNICA: DATOS COMPLETOS DEL FORMULARIO -->
+            <div class="form-section-compact">
+              
+              <!-- UNIDAD EJECUTORA -->
+              <div class="subsection-title">
+                <i class="fas fa-building"></i> Unidad Ejecutora
+              </div>
+              
+              <div class="row g-2 mb-3">
+                <div class="col-md-3">
+                  <label for="codUE" class="form-label-compact">
+                    <i class="fas fa-hashtag"></i> Código UE
+                  </label>
+                  <input type="number" 
+                         class="form-control campo-amarillo" 
+                         id="codUE" 
+                         placeholder="001234" 
+                         required 
+                         onblur="buscarNombre()">
+                  <div class="invalid-feedback">Ingrese un código válido</div>
+                </div>
+                
+                <div class="col-md-5">
+                  <label for="nombreUE" class="form-label-compact">
+                    <i class="fas fa-university"></i> Nombre de la UE
+                  </label>
+                  <input type="text" 
+                         class="form-control campo-azul" 
+                         id="nombreUE" 
+                         placeholder="Se completará automáticamente" 
+                         readonly>
+                </div>
+                
+                <div class="col-md-4">
+                  <label for="coorD" class="form-label-compact">
+                    <i class="fas fa-user-tie"></i> Coordinador(a) SIGA
+                  </label>
+                  <div class="input-group">
+                    <input type="text" 
+                           class="form-control campo-verde" 
+                           id="coorD" 
+                           placeholder="Coordinador asignado" 
+                           readonly>
+                    <a href="https://script.google.com/macros/s/AKfycby7yZQVFKWm2V4TH7NUVE_31UppV0T0DZTRE25ITKZU2lh-uGHHjngH2DhrwZo_c6OZ0A/exec" 
+                       class="btn btn-actualizar" 
+                       target="_blank"
+                       title="Actualizar coordinador">
+                      <i class="fas fa-sync-alt"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- DATOS DEL USUARIO -->
+              <div class="subsection-title">
+                <i class="fas fa-user"></i> Datos del Usuario
+              </div>
+              
+              <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                  <label for="nombreUsuario" class="form-label-compact">
+                    <i class="fas fa-id-card"></i> Nombre y Apellido
+                  </label>
+                  <input type="text" 
+                         class="form-control" 
+                         id="nombreUsuario" 
+                         placeholder="Juan Pérez López" 
+                         required>
+                  <div class="invalid-feedback">Ingrese su nombre completo</div>
+                </div>
+                
+                <div class="col-md-6">
+                  <label for="cargoUsuario" class="form-label-compact">
+                    <i class="fas fa-briefcase"></i> Cargo en la UE
+                  </label>
+                  <select class="form-select" 
+                          id="cargoUsuario" 
+                          required>
+                    <option value="">Seleccione su cargo...</option>
+                    <option value="COORDINADOR SIGA">COORDINADOR SIGA</option>
+                    <option value="RESP DE ALMACEN">RESP DE ALMACEN</option>
+                    <option value="RESP DE PATRIMONIO">RESP DE PATRIMONIO</option>
+                    <option value="RESP DE LOGISTICA">RESP DE LOGISTICA</option>
+                    <option value="ASISTENTE LOGISTICA">ASISTENTE LOGISTICA</option>
+                    <option value="RESP DE PROGRAMACION">RESP DE PROGRAMACION</option>
+                    <option value="OTRO">OTRO (Especificar)</option>
+                  </select>
+                  <div class="invalid-feedback">Seleccione su cargo</div>
+                </div>
+              </div>
+              
+              <!-- Campo OTRO CARGO - Aparece dinámicamente -->
+              <div class="row g-2 mb-2" id="campoOtroCargoRow" style="display: none;">
+                <div class="col-12">
+                  <label for="otroCargo" class="form-label-compact">
+                    <i class="fas fa-edit"></i> Especifique su Cargo
+                  </label>
+                  <input type="text" 
+                         class="form-control campo-otro-cargo" 
+                         id="otroCargo" 
+                         placeholder="Ej: Asistente Administrativo, Jefe de Área, etc.">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle"></i> Campo obligatorio cuando selecciona "OTRO"
+                  </small>
+                  <div class="invalid-feedback">Por favor especifique su cargo</div>
+                </div>
+              </div>
+              
+              <div class="row g-2 mb-3">
+                <div class="col-md-6">
+                  <label for="correoUsuario" class="form-label-compact">
+                    <i class="fas fa-envelope"></i> Correo Electrónico
+                  </label>
+                  <input type="email" 
+                         class="form-control" 
+                         id="correoUsuario" 
+                         placeholder="ejemplo@mef.gob.pe" 
+                         required>
+                  <div class="invalid-feedback">Ingrese un correo válido</div>
+                </div>
+                
+                <div class="col-md-6">
+                  <label for="celularUsuario" class="form-label-compact">
+                    <i class="fas fa-mobile-alt"></i> Celular
+                  </label>
+                  <input type="text" 
+                         class="form-control" 
+                         id="celularUsuario" 
+                         placeholder="999 999 999" 
+                         minlength="9" 
+                         maxlength="9" 
+                         required 
+                         pattern="\d{9}">
+                  <div class="invalid-feedback">Ingrese 9 dígitos</div>
+                </div>
+              </div>
+
+              <!-- DETALLES DEL CASO -->
+              <div class="subsection-title">
+                <i class="fas fa-cogs"></i> Detalles del Caso
+              </div>
+              
+              <div class="row g-2 mb-2">
+                <div class="col-md-6">
+                  <label for="moduloSiga" class="form-label-compact">
+                    <i class="fas fa-puzzle-piece"></i> Módulo SIGA
+                  </label>
+                  <select class="form-select" id="moduloSiga" required>
+                    <option value="">Seleccione el módulo...</option>
+                    <option value="MÓDULO ADMINISTRADOR">MÓDULO ADMINISTRADOR</option>
+                    <option value="MÓDULO CONFIGURACIÓN">MÓDULO CONFIGURACIÓN</option>
+                    <option value="MÓDULO LOGÍSTICA">MÓDULO LOGÍSTICA</option>
+                    <option value="MÓDULO PATRIMONIO">MÓDULO PATRIMONIO</option>
+                    <option value="MÓDULO PPR">MÓDULO PPR</option>
+                    <option value="PMBSO WEB">PMBSO WEB</option>
+                    <option value="MÓDULO BIENES CORRIENTES">MÓDULO BIENES CORRIENTES</option>
+                    <option value="MARCO GENERAL">MARCO GENERAL</option>
+                  </select>
+                  <div class="invalid-feedback">Seleccione un módulo</div>
+                </div>
+                
+                <div class="col-md-6">
+                  <label for="subModuloSiga" class="form-label-compact">
+                    <i class="fas fa-layer-group"></i> Sub-Módulo
+                  </label>
+                  <select class="form-select" id="subModuloSiga" required disabled>
+                    <option value="">Primero seleccione un módulo...</option>
+                  </select>
+                  <div class="invalid-feedback">Seleccione un sub-módulo</div>
+                </div>
+              </div>
+              
+              <div class="row g-2 mb-3">
+                <div class="col-12">
+                  <label for="descripcion" class="form-label-compact">
+                    <i class="fas fa-comment-dots"></i> Descripción del Problema
+                  </label>
+                  <div class="textarea-wrapper">
+                    <textarea class="form-control" 
+                              id="descripcion" 
+                              rows="3" 
+                              maxlength="500" 
+                              placeholder="Describa detalladamente su problema o consulta..." 
+                              required></textarea>
+                    <div class="char-counter">
+                      <i class="fas fa-keyboard"></i>
+                      <span id="charCount">500</span>
+                    </div>
+                  </div>
+                  <div class="invalid-feedback">Ingrese una descripción del problema</div>
+                </div>
+              </div>
+
+              <!-- ADJUNTAR ARCHIVOS -->
+              <div class="subsection-title">
+                <i class="fas fa-paperclip"></i> Adjuntar Archivos (Opcional)
+              </div>
+
+              <!-- Zona de carga compacta -->
+              <div class="file-upload-compact" id="fileUploadZone" onclick="document.getElementById('fileInput').click()">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <span>Arrastra archivos o haz clic aquí</span>
+                <small class="text-muted d-block mt-1">JPG, PNG, PDF, DOC, XLSX (Máx. 5MB por archivo - Máx. 5 archivos)</small>
+                
+                <input type="file" 
+                       id="fileInput" 
+                       class="file-input-hidden" 
+                       multiple 
+                       accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+                       onchange="handleFileSelect(event)">
+                
+                <div class="upload-buttons-compact" onclick="event.stopPropagation()">
+                  <button type="button" class="btn-upload-compact" onclick="document.getElementById('fileInput').click()">
+                    <i class="fas fa-folder-open"></i> Seleccionar Archivos
+                  </button>
+                  <button type="button" class="btn-upload-compact btn-camera-compact" id="cameraButton" onclick="openCamera()">
+                    <i class="fas fa-camera"></i> Tomar Foto
+                  </button>
+                </div>
+              </div>
+
+              <!-- Preview compacto -->
+              <div class="files-preview-compact" id="filesPreview">
+                <div class="files-header-compact">
+                  <i class="fas fa-paperclip"></i> Archivos Adjuntos (<span id="fileCount">0</span>/5)
+                </div>
+                <div id="filesList" class="files-list-compact"></div>
+              </div>
+
+            </div>
+
+            <!-- Botón de envío -->
+            <div class="form-actions-compact">
+              <button type="button" class="btn-enviar-compact" onclick="guardarFormulario()">
+                <i class="fas fa-paper-plane"></i> Enviar Solicitud
+              </button>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- Confirmación -->
+      <div class="container-fluid p-3" id="confirmacionContainer" style="display: none;">
+        <div class="confirmation-card animate__animated animate__zoomIn">
+          <div class="success-animation">
+            <div class="checkmark-circle">
+              <div class="checkmark"></div>
+            </div>
+          </div>
+          
+          <h2>¡Solicitud Registrada!</h2>
+          
+          <div class="ticket-display">
+            <p class="ticket-label">Tu número de ticket es:</p>
+            <p class="ticket-number" id="numeroTicket">SIGA-2024-0000</p>
+          </div>
+          
+          <div class="confirmation-message">
+            <p><i class="fas fa-check-circle"></i> Tu solicitud ha sido registrada exitosamente</p>
+            <p><i class="fas fa-clock"></i> Recibirás una respuesta en un máximo de 24 horas</p>
+            <p><i class="fas fa-envelope"></i> Te enviaremos un correo de confirmación</p>
+          </div>
+          
+          <div class="confirmation-actions">
+            <a href="#" class="btn-whatsapp" onclick="enviarWhatsApp()">
+              <i class="fab fa-whatsapp"></i> Contactar por WhatsApp
+            </a>
+            <button class="btn-nuevo-ticket" onclick="nuevoTicket()">
+              <i class="fas fa-plus-circle"></i> Nueva Solicitud
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <!-- JavaScript personalizado -->
+  <script src="js/script.js"></script>
+</body>
+</html>
