@@ -2,12 +2,11 @@
  * API PARA CONSULTAR EJECUTORAS Y GUARDAR TICKETS
  * Archivo: js/api.js
  * ✅ USA JSONP PARA EVITAR PROBLEMAS DE CORS
- * ✅ INCLUYE FUNCIÓN PARA GUARDAR TICKETS CON NÚMERO REAL
+ * ✅ CORREGIDO: Envío de correo coordinador
  */
 
 // ===== CONFIGURACIÓN =====
 const API_CONFIG = {
-  // 🔴 PEGAR AQUÍ LA URL DEL WEB APP DE GOOGLE APPS SCRIPT
   URL: 'https://script.google.com/macros/s/AKfycbyuqmaQgpdyxwUXTveTrOailRcZb8y27beTU5Rz_3CsCZlT0y7rOLDAV4sEAeGmCO03/exec',
   TIMEOUT: 15000,
   CACHE_TIEMPO: 5 * 60 * 1000
@@ -24,7 +23,6 @@ function fetchJSONP(url, timeout = 15000) {
     const script = document.createElement('script');
     let timeoutId;
     
-    // Cleanup function
     const cleanup = () => {
       if (script.parentNode) {
         script.parentNode.removeChild(script);
@@ -35,29 +33,24 @@ function fetchJSONP(url, timeout = 15000) {
       }
     };
     
-    // Setup timeout
     timeoutId = setTimeout(() => {
       cleanup();
       reject(new Error('Request timeout'));
     }, timeout);
     
-    // Setup callback
     window[callbackName] = (data) => {
       cleanup();
       resolve(data);
     };
     
-    // Setup error handler
     script.onerror = () => {
       cleanup();
       reject(new Error('Script load error'));
     };
     
-    // Add callback parameter to URL
     const separator = url.includes('?') ? '&' : '?';
     script.src = `${url}${separator}callback=${callbackName}`;
     
-    // Append script
     document.head.appendChild(script);
   });
 }
@@ -75,7 +68,6 @@ async function buscarEjecutoras(termino) {
     
     const terminoLimpio = termino.trim();
     
-    // Verificar cache
     const cacheKey = `buscar_${terminoLimpio.toLowerCase()}`;
     const ahora = Date.now();
     
@@ -95,7 +87,6 @@ async function buscarEjecutoras(termino) {
     
     console.log('✅ Respuesta recibida:', data);
     
-    // Guardar en cache
     if (data.success && data.resultados && data.resultados.length > 0) {
       cacheResultados.set(cacheKey, data);
       cacheTimestamps.set(cacheKey, ahora);
@@ -122,7 +113,6 @@ async function obtenerEjecutora(codigo) {
     
     const codigoLimpio = codigo.toString().trim();
     
-    // Verificar cache
     const cacheKey = `obtener_${codigoLimpio}`;
     const ahora = Date.now();
     
@@ -141,7 +131,6 @@ async function obtenerEjecutora(codigo) {
     
     console.log('✅ Ejecutora obtenida:', data);
     
-    // Guardar en cache
     if (data.success) {
       cacheResultados.set(cacheKey, data);
       cacheTimestamps.set(cacheKey, ahora);
@@ -158,29 +147,33 @@ async function obtenerEjecutora(codigo) {
   }
 }
 
-// ===== 🆕 GUARDAR TICKET CON JSONP =====
+// ===== 🆕 GUARDAR TICKET CON JSONP - ✅ CORREGIDO =====
 async function guardarTicket(datosTicket) {
   try {
     console.log('💾 Guardando ticket...', datosTicket);
     
-    // Construir URL con parámetros
+    // ✅ CONSTRUIR URL CON TODOS LOS PARÁMETROS (INCLUYENDO CORREO COORDINADOR)
     const params = new URLSearchParams({
       action: 'guardarTicket',
       codigoUE: datosTicket.codigoUE || '',
       nombreUE: datosTicket.nombreUE || '',
       coordinadorAbrev: datosTicket.coordinadorAbrev || '',
+      correoCoordinador: datosTicket.correoCoordinador || '',  // ✅ AGREGADO
+      coordinador: datosTicket.coordinador || '',              // ✅ AGREGADO
       nombreUsuario: datosTicket.nombreUsuario || '',
       cargoUsuario: datosTicket.cargoUsuario || '',
       correoUsuario: datosTicket.correoUsuario || '',
       celularUsuario: datosTicket.celularUsuario || '',
       modulo: datosTicket.modulo || '',
       submodulo: datosTicket.submodulo || '',
-      descripcion: datosTicket.descripcion || ''
+      descripcion: datosTicket.descripcion || '',
+      analistaDGA: datosTicket.analistaDGA || ''               // ✅ AGREGADO
     });
     
     const url = `${API_CONFIG.URL}?${params.toString()}`;
     
     console.log('📡 Enviando ticket via JSONP...');
+    console.log('📧 Correo coordinador:', datosTicket.correoCoordinador);
     
     // ✅ USAR JSONP PARA OBTENER LA RESPUESTA REAL DEL SERVIDOR
     const data = await fetchJSONP(url, API_CONFIG.TIMEOUT);

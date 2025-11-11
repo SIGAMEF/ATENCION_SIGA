@@ -423,7 +423,7 @@ function mostrarAlerta(mensaje, tipo = 'info') {
 }
 
 // ========================================
-// GUARDAR FORMULARIO
+// GUARDAR FORMULARIO (CORREGIDO)
 // ========================================
 async function guardarFormulario() {
   const form = document.getElementById('ticketForm');
@@ -570,20 +570,37 @@ async function guardarFormulario() {
     cargoFinal = otroCargoInput.value.trim();
   }
   
+  // ✅ OBTENER DATOS ADICIONALES DEL COORDINADOR (GUARDADOS EN dataset)
+  const coordinadorAbrev = inputCoordinador.value || nombreUEField.dataset.coordinadorAbrev || '';
+  const correoCoordinador = nombreUEField.dataset.correoCoordinador || '';
+  const coordinadorNombreCompleto = nombreUEField.dataset.coordinador || coordinadorAbrev;
+  const analistaDGA = nombreUEField.dataset.analistaDGA || 'DANIEL MARROQUIN';
+  
+  console.log('📧 Datos coordinador:', {
+    coordinadorAbrev,
+    correoCoordinador,
+    coordinadorNombreCompleto,
+    analistaDGA
+  });
+  
+  // ✅ PREPARAR DATOS COMPLETOS (CON TODOS LOS CAMPOS NECESARIOS PARA EL CORREO)
   const datos = {
     codigoUE: codigoUE.value,
     nombreUE: nombreUEField.value,
-    coordinadorAbrev: inputCoordinador.value || '',
+    coordinadorAbrev: coordinadorAbrev,
+    correoCoordinador: correoCoordinador,  // ✅ NUEVO
+    coordinador: coordinadorNombreCompleto, // ✅ NUEVO
     nombreUsuario: nombreUsuario.value,
     cargoUsuario: cargoFinal,
     correoUsuario: correoUsuario.value,
     celularUsuario: celularUsuario.value,
     modulo: moduloSiga.value,
     submodulo: subModuloSiga.value,
-    descripcion: descripcion.value
+    descripcion: descripcion.value,
+    analistaDGA: analistaDGA  // ✅ NUEVO
   };
 
-  console.log('📋 Datos del formulario:', datos);
+  console.log('📋 Datos del formulario (COMPLETOS):', datos);
 
   // 🆕 GUARDAR EN GOOGLE SHEETS
   try {
@@ -594,7 +611,13 @@ async function guardarFormulario() {
     
     if (resultado.success) {
       mostrarConfirmacion(resultado.numeroTicket);
-      mostrarAlerta('✅ Ticket guardado exitosamente', 'success');
+      
+      // ✅ MOSTRAR ESTADO DEL CORREO
+      if (resultado.correoEnviado) {
+        mostrarAlerta('✅ Ticket guardado y correo enviado exitosamente', 'success');
+      } else {
+        mostrarAlerta('⚠️ Ticket guardado pero el correo no pudo ser enviado', 'warning');
+      }
     } else {
       mostrarAlerta('❌ Error al guardar: ' + resultado.message, 'danger');
     }
@@ -640,10 +663,34 @@ function nuevoTicket() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// ========================================
+// FUNCIÓN WHATSAPP MEJORADA
+// ========================================
 function enviarWhatsApp() {
-  const numeroTicket = document.getElementById('numeroTicket').textContent;
-  const mensaje = `Hola, acabo de registrar el ticket ${numeroTicket} en el Sistema SIGA y quisiera hacer seguimiento.`;
+  const numeroTicketElement = document.getElementById('numeroTicket');
+  const numeroTicket = numeroTicketElement ? numeroTicketElement.textContent : 'SIGA-2025-0000';
+  
+  // Extraer solo el número correlativo (ejemplo: "0007" de "SIGA-2025-0007")
+  const numeroCorrelativo = numeroTicket.split('-')[2] || '0000';
+  
+  // Obtener datos del usuario y UE
+  const nombreUsuario = document.getElementById('nombreUsuario').value || 'Usuario';
+  const nombreUE = document.getElementById('nombreUE').value || 'Unidad Ejecutora';
+  
+  // 📱 MENSAJE PERSONALIZADO CON TODOS LOS DATOS
+  const mensaje = `Hola Daniel, ${nombreUsuario} de ${nombreUE}, He generado la AT Nro ${numeroCorrelativo}
+Un favor, me avisas para enviarte el acceso o llamarte?
+Gracias!`;
+  
+  // URL de WhatsApp con el número de Perú
   const url = `https://wa.me/51964374113?text=${encodeURIComponent(mensaje)}`;
+  
+  console.log('📱 Abriendo WhatsApp con mensaje:', mensaje);
+  console.log('👤 Usuario:', nombreUsuario);
+  console.log('🏢 UE:', nombreUE);
+  console.log('🎫 Ticket:', numeroCorrelativo);
+  
+  // Abrir en nueva pestaña
   window.open(url, '_blank');
 }
 
@@ -858,10 +905,18 @@ function seleccionarEjecutora(item) {
   inputNombre.value = item.nombre;
   inputCoordinador.value = item.coordinadorAbrev;
   
-  // Guardar datos adicionales en dataset
+  // ✅ GUARDAR TODOS LOS DATOS EN DATASET (PARA EL CORREO)
   inputNombre.dataset.coordinadorAbrev = item.coordinadorAbrev || '';
   inputNombre.dataset.correoCoordinador = item.correo || '';
-  inputNombre.dataset.analistaDGA = item.analistaDGA || '';
+  inputNombre.dataset.coordinador = item.coordinador || '';  // ✅ NOMBRE COMPLETO
+  inputNombre.dataset.analistaDGA = item.analistaDGA || 'DANIEL MARROQUIN';
+  
+  console.log('📦 Datos guardados en dataset:', {
+    coordinadorAbrev: item.coordinadorAbrev,
+    correoCoordinador: item.correo,
+    coordinador: item.coordinador,
+    analistaDGA: item.analistaDGA
+  });
   
   // Ocultar sugerencias
   ocultarSugerencias();
@@ -876,7 +931,6 @@ function seleccionarEjecutora(item) {
   
   busquedaActiva = false;
 }
-
 function marcarComoValido(input) {
   input.classList.remove('is-invalid');
   input.classList.add('is-valid');
