@@ -3,6 +3,7 @@
  * Archivo: js/api.js
  * ✅ USA JSONP PARA EVITAR PROBLEMAS DE CORS
  * ✅ CORREGIDO: Envío de correo coordinador
+ * 🆕 SUBIDA DE ARCHIVOS A GOOGLE DRIVE
  */
 
 // ===== CONFIGURACIÓN =====
@@ -158,8 +159,8 @@ async function guardarTicket(datosTicket) {
       codigoUE: datosTicket.codigoUE || '',
       nombreUE: datosTicket.nombreUE || '',
       coordinadorAbrev: datosTicket.coordinadorAbrev || '',
-      correoCoordinador: datosTicket.correoCoordinador || '',  // ✅ AGREGADO
-      coordinador: datosTicket.coordinador || '',              // ✅ AGREGADO
+      correoCoordinador: datosTicket.correoCoordinador || '',
+      coordinador: datosTicket.coordinador || '',
       nombreUsuario: datosTicket.nombreUsuario || '',
       cargoUsuario: datosTicket.cargoUsuario || '',
       correoUsuario: datosTicket.correoUsuario || '',
@@ -167,7 +168,7 @@ async function guardarTicket(datosTicket) {
       modulo: datosTicket.modulo || '',
       submodulo: datosTicket.submodulo || '',
       descripcion: datosTicket.descripcion || '',
-      analistaDGA: datosTicket.analistaDGA || ''               // ✅ AGREGADO
+      analistaDGA: datosTicket.analistaDGA || ''
     });
     
     const url = `${API_CONFIG.URL}?${params.toString()}`;
@@ -189,6 +190,128 @@ async function guardarTicket(datosTicket) {
       message: 'Error al guardar ticket: ' + error.message
     };
   }
+}
+
+// ===== 🆕 SUBIR ARCHIVO A GOOGLE DRIVE =====
+async function subirArchivoADrive(numeroTicket, archivo) {
+  try {
+    console.log('📤 Subiendo archivo:', archivo.name);
+    console.log('📦 Archivo info:', {
+      nombre: archivo.name,
+      tipo: archivo.type,
+      tamaño: archivo.size
+    });
+    
+    // Convertir archivo a Base64
+    const contenidoBase64 = await archivoABase64(archivo);
+    
+    console.log('✅ Archivo convertido a Base64, longitud:', contenidoBase64.length);
+    
+    // Preparar datos
+    const datos = {
+      action: 'subirArchivo',
+      numeroTicket: numeroTicket,
+      nombreArchivo: archivo.name,
+      contenidoBase64: contenidoBase64,
+      mimeType: archivo.type
+    };
+    
+    console.log('📡 Enviando archivo al servidor...');
+    console.log('🎫 Ticket:', numeroTicket);
+    console.log('📄 Nombre:', archivo.name);
+    
+    // Enviar con POST
+    const response = await fetch(API_CONFIG.URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(datos),
+      mode: 'no-cors' // Importante para evitar CORS con Apps Script
+    });
+    
+    console.log('📨 Respuesta recibida del servidor');
+    
+    // Como usamos no-cors, no podemos leer la respuesta
+    // Asumimos éxito si no hay error
+    return {
+      success: true,
+      message: 'Archivo enviado',
+      nombreArchivo: archivo.name
+    };
+    
+  } catch (error) {
+    console.error('❌ Error al subir archivo:', error);
+    console.error('Stack:', error.stack);
+    return {
+      success: false,
+      message: 'Error al subir archivo: ' + error.message
+    };
+  }
+}
+
+// ===== 🆕 CONVERTIR ARCHIVO A BASE64 =====
+function archivoABase64(archivo) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = () => {
+      // Extraer solo el contenido base64 (sin el prefijo data:...)
+      const base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    
+    reader.onerror = (error) => {
+      reject(error);
+    };
+    
+    reader.readAsDataURL(archivo);
+  });
+}
+
+// ===== 🆕 SUBIR MÚLTIPLES ARCHIVOS =====
+async function subirMultiplesArchivos(numeroTicket, archivos, onProgress) {
+  const resultados = [];
+  const total = archivos.length;
+  
+  console.log(`📤 Iniciando subida de ${total} archivo(s) para ticket ${numeroTicket}`);
+  
+  for (let i = 0; i < archivos.length; i++) {
+    const archivoData = archivos[i];
+    
+    console.log(`📤 Subiendo archivo ${i + 1}/${total}: ${archivoData.name}`);
+    
+    // Callback de progreso
+    if (onProgress) {
+      onProgress(i + 1, total, archivoData.name);
+    }
+    
+    try {
+      // ✅ PASAR EL OBJETO FILE REAL, NO EL WRAPPER
+      const resultado = await subirArchivoADrive(numeroTicket, archivoData.file);
+      resultados.push({
+        ...resultado,
+        nombreOriginal: archivoData.name
+      });
+      
+      console.log(`✅ Archivo ${i + 1}/${total} procesado:`, resultado.success ? 'ÉXITO' : 'ERROR');
+      
+    } catch (error) {
+      console.error(`❌ Error al subir ${archivoData.name}:`, error);
+      resultados.push({
+        success: false,
+        nombreOriginal: archivoData.name,
+        message: error.message
+      });
+    }
+    
+    // Pequeña pausa entre archivos para no saturar
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  
+  console.log('✅ Subida completada. Resultados:', resultados);
+  
+  return resultados;
 }
 
 // ===== VERIFICAR CONEXIÓN =====

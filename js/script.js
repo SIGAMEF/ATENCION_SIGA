@@ -1,9 +1,7 @@
 // URL de tu Google Apps Script
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyuqmaQgpdyxwUXTveTrOailRcZb8y27beTU5Rz_3CsCZlT0y7rOLDAV4sEAeGmCO03/exec';
 
-// ========================================
 // CONFIGURACIÓN DE SUBMÓDULOS
-// ========================================
 const subModulos = {
   "MÓDULO ADMINISTRADOR": ["ADMINISTRACIÓN"],
   "MÓDULO CONFIGURACIÓN": ["MAESTROS", "PROCESOS"],
@@ -15,31 +13,26 @@ const subModulos = {
   "MARCO GENERAL": ["SIGA MEF", "LOGÍSTICA", "PATRIMONIO", "PPR", "BIENES CORRIENTES", "VERSIONES"]
 };
 
-// ========================================
 // VARIABLES GLOBALES
-// ========================================
 let archivosAdjuntos = [];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_FILES = 5;
+let numeroTicketActual = ''; // 🆕 Para guardar el número de ticket
+let urlCarpetaActual = ''; // 🆕 Para guardar la URL de la carpeta
 
-// ========================================
 // INICIALIZACIÓN
-// ========================================
 document.addEventListener('DOMContentLoaded', function() {
   console.log('🚀 Sistema de Tickets SIGA iniciado');
   
-  // Configurar eventos
   setupEventListeners();
   setupDragAndDrop();
   updateCharCount();
   
-  // Ocultar botón de cámara en escritorio
   const cameraButton = document.getElementById('cameraButton');
   if (!isMobileDevice() && cameraButton) {
     cameraButton.style.display = 'none';
   }
   
-  // Inicializar autocompletado
   setTimeout(() => {
     inicializarAutocompletadoEjecutoras();
   }, 500);
@@ -47,17 +40,13 @@ document.addEventListener('DOMContentLoaded', function() {
   console.log('✅ Sistema inicializado correctamente');
 });
 
-// ========================================
 // CONFIGURAR EVENT LISTENERS
-// ========================================
 function setupEventListeners() {
-  // Eventos de formulario
   document.getElementById('celularUsuario').addEventListener('input', validatePhoneNumber);
   document.getElementById('descripcion').addEventListener('input', updateCharCount);
   document.getElementById('moduloSiga').addEventListener('change', updateSubModulos);
   document.getElementById('cargoUsuario').addEventListener('change', mostrarCampoOtroCargo);
   
-  // Cerrar menú al hacer clic fuera
   document.addEventListener('click', function(event) {
     const sidebar = document.getElementById('sidebar');
     const menuToggle = document.querySelector('.menu-toggle');
@@ -69,10 +58,6 @@ function setupEventListeners() {
     }
   });
 }
-
-// ========================================
-// FUNCIONES BÁSICAS
-// ========================================
 
 function toggleMenu() {
   const sidebar = document.getElementById('sidebar');
@@ -112,21 +97,16 @@ function validatePhoneNumber() {
   }
 }
 
-// ========================================
-// ACTUALIZAR SUBMÓDULOS
-// ========================================
 function updateSubModulos() {
   const moduloSelect = document.getElementById('moduloSiga');
   const subModuloSelect = document.getElementById('subModuloSiga');
   const modulo = moduloSelect.value;
 
-  console.log('🔍 Módulo seleccionado:', modulo);
+  console.log('🔎 Módulo seleccionado:', modulo);
 
-  // Limpiar submódulos
   subModuloSelect.innerHTML = '';
   subModuloSelect.classList.remove('is-valid', 'is-invalid');
   
-  // Si no hay módulo seleccionado
   if (!modulo) {
     subModuloSelect.disabled = true;
     const option = document.createElement('option');
@@ -137,20 +117,16 @@ function updateSubModulos() {
     return;
   }
 
-  // Marcar módulo como válido
   moduloSelect.classList.remove('is-invalid');
   moduloSelect.classList.add('is-valid');
 
-  // Habilitar submódulos
   subModuloSelect.disabled = false;
   
-  // Agregar opción por defecto
   const defaultOption = document.createElement('option');
   defaultOption.value = '';
   defaultOption.textContent = 'Seleccione un sub-módulo...';
   subModuloSelect.appendChild(defaultOption);
   
-  // Cargar submódulos correspondientes
   if (subModulos[modulo] && subModulos[modulo].length > 0) {
     console.log('✅ Cargando submódulos:', subModulos[modulo]);
     
@@ -161,7 +137,6 @@ function updateSubModulos() {
       subModuloSelect.appendChild(option);
     });
     
-    // Animación de entrada
     subModuloSelect.style.animation = 'none';
     setTimeout(() => {
       subModuloSelect.style.animation = 'fadeIn 0.3s ease-out';
@@ -176,9 +151,6 @@ function updateSubModulos() {
   }
 }
 
-// ========================================
-// MOSTRAR CAMPO "OTRO CARGO"
-// ========================================
 function mostrarCampoOtroCargo() {
   const cargoSelect = document.getElementById('cargoUsuario');
   const campoOtroRow = document.getElementById('campoOtroCargoRow');
@@ -187,17 +159,14 @@ function mostrarCampoOtroCargo() {
   console.log('🔄 Cargo seleccionado:', cargoSelect.value);
   
   if (cargoSelect.value === 'OTRO') {
-    // MOSTRAR el campo con animación
     campoOtroRow.style.display = 'block';
     campoOtroRow.style.animation = 'slideDown 0.4s ease-out';
     otroCargoInput.required = true;
     
-    // Focus después de la animación
     setTimeout(() => {
       otroCargoInput.focus();
     }, 200);
     
-    // Marcar select como válido
     cargoSelect.classList.remove('is-invalid');
     cargoSelect.classList.add('is-valid');
     
@@ -205,13 +174,11 @@ function mostrarCampoOtroCargo() {
     mostrarAlerta('📝 Por favor especifique su cargo', 'info');
     
   } else {
-    // OCULTAR el campo
     campoOtroRow.style.display = 'none';
     otroCargoInput.required = false;
     otroCargoInput.value = '';
     otroCargoInput.classList.remove('is-invalid', 'is-valid');
     
-    // Validar select si tiene valor
     if (cargoSelect.value) {
       cargoSelect.classList.remove('is-invalid');
       cargoSelect.classList.add('is-valid');
@@ -221,10 +188,7 @@ function mostrarCampoOtroCargo() {
   }
 }
 
-// ========================================
 // MANEJO DE ARCHIVOS
-// ========================================
-
 function isMobileDevice() {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
@@ -393,9 +357,7 @@ function removeFile(fileId) {
   }
 }
 
-// ========================================
 // ALERTAS FLOTANTES
-// ========================================
 function mostrarAlerta(mensaje, tipo = 'info') {
   const alertDiv = document.createElement('div');
   alertDiv.className = `alert alert-${tipo} alert-dismissible fade show position-fixed`;
@@ -422,17 +384,15 @@ function mostrarAlerta(mensaje, tipo = 'info') {
   }, 3500);
 }
 
-// ========================================
-// GUARDAR FORMULARIO (CORREGIDO)
-// ========================================
+// 🆕 GUARDAR FORMULARIO CON SUBIDA DE ARCHIVOS
 async function guardarFormulario() {
   const form = document.getElementById('ticketForm');
   let formValid = true;
   let primerCampoInvalido = null;
 
-  console.log('🔍 Iniciando validación del formulario...');
+  console.log('🔎 Iniciando validación del formulario...');
 
-  // Validar Código UE
+  // [... resto de la validación del formulario - IGUAL QUE ANTES ...]
   const codigoUE = document.getElementById('codigoUE');
   const nombreUE = document.getElementById('nombreUE');
   
@@ -446,7 +406,6 @@ async function guardarFormulario() {
     codigoUE.classList.add('is-valid');
   }
   
-  // Validar Nombre Usuario
   const nombreUsuario = document.getElementById('nombreUsuario');
   if (!nombreUsuario.value.trim()) {
     nombreUsuario.classList.add('is-invalid');
@@ -458,7 +417,6 @@ async function guardarFormulario() {
     nombreUsuario.classList.add('is-valid');
   }
   
-  // Validar Cargo y Campo "OTRO"
   const cargoSelect = document.getElementById('cargoUsuario');
   const otroCargoInput = document.getElementById('otroCargo');
   
@@ -484,7 +442,6 @@ async function guardarFormulario() {
     }
   }
   
-  // Validar Correo
   const correoUsuario = document.getElementById('correoUsuario');
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   
@@ -498,7 +455,6 @@ async function guardarFormulario() {
     correoUsuario.classList.add('is-valid');
   }
   
-  // Validar Celular
   const celularUsuario = document.getElementById('celularUsuario');
   if (!/^\d{9}$/.test(celularUsuario.value)) {
     celularUsuario.classList.add('is-invalid');
@@ -510,7 +466,6 @@ async function guardarFormulario() {
     celularUsuario.classList.add('is-valid');
   }
   
-  // Validar Módulo
   const moduloSiga = document.getElementById('moduloSiga');
   if (!moduloSiga.value) {
     moduloSiga.classList.add('is-invalid');
@@ -522,7 +477,6 @@ async function guardarFormulario() {
     moduloSiga.classList.add('is-valid');
   }
   
-  // Validar Submódulo
   const subModuloSiga = document.getElementById('subModuloSiga');
   if (!subModuloSiga.value) {
     subModuloSiga.classList.add('is-invalid');
@@ -534,7 +488,6 @@ async function guardarFormulario() {
     subModuloSiga.classList.add('is-valid');
   }
   
-  // Validar Descripción
   const descripcion = document.getElementById('descripcion');
   if (!descripcion.value.trim() || descripcion.value.trim().length < 10) {
     descripcion.classList.add('is-invalid');
@@ -546,7 +499,6 @@ async function guardarFormulario() {
     descripcion.classList.add('is-valid');
   }
   
-  // Si hay errores
   if (!formValid) {
     if (primerCampoInvalido) {
       primerCampoInvalido.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -570,26 +522,17 @@ async function guardarFormulario() {
     cargoFinal = otroCargoInput.value.trim();
   }
   
-  // ✅ OBTENER DATOS ADICIONALES DEL COORDINADOR (GUARDADOS EN dataset)
   const coordinadorAbrev = inputCoordinador.value || nombreUEField.dataset.coordinadorAbrev || '';
   const correoCoordinador = nombreUEField.dataset.correoCoordinador || '';
   const coordinadorNombreCompleto = nombreUEField.dataset.coordinador || coordinadorAbrev;
   const analistaDGA = nombreUEField.dataset.analistaDGA || 'DANIEL MARROQUIN';
   
-  console.log('📧 Datos coordinador:', {
-    coordinadorAbrev,
-    correoCoordinador,
-    coordinadorNombreCompleto,
-    analistaDGA
-  });
-  
-  // ✅ PREPARAR DATOS COMPLETOS (CON TODOS LOS CAMPOS NECESARIOS PARA EL CORREO)
   const datos = {
     codigoUE: codigoUE.value,
     nombreUE: nombreUEField.value,
     coordinadorAbrev: coordinadorAbrev,
-    correoCoordinador: correoCoordinador,  // ✅ NUEVO
-    coordinador: coordinadorNombreCompleto, // ✅ NUEVO
+    correoCoordinador: correoCoordinador,
+    coordinador: coordinadorNombreCompleto,
     nombreUsuario: nombreUsuario.value,
     cargoUsuario: cargoFinal,
     correoUsuario: correoUsuario.value,
@@ -597,7 +540,7 @@ async function guardarFormulario() {
     modulo: moduloSiga.value,
     submodulo: subModuloSiga.value,
     descripcion: descripcion.value,
-    analistaDGA: analistaDGA  // ✅ NUEVO
+    analistaDGA: analistaDGA
   };
 
   console.log('📋 Datos del formulario (COMPLETOS):', datos);
@@ -606,19 +549,58 @@ async function guardarFormulario() {
   try {
     const resultado = await guardarTicket(datos);
     
-    btnEnviar.innerHTML = originalText;
-    btnEnviar.disabled = false;
-    
     if (resultado.success) {
+      numeroTicketActual = resultado.numeroTicket;
+      urlCarpetaActual = resultado.urlCarpeta || '';
+      
+      console.log('✅ Ticket guardado:', numeroTicketActual);
+      console.log('📁 URL Carpeta:', urlCarpetaActual);
+      
+      // 🆕 SUBIR ARCHIVOS SI HAY ALGUNO
+      if (archivosAdjuntos.length > 0) {
+        btnEnviar.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin"></i> Subiendo archivos...';
+        
+        mostrarAlerta(`📤 Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'info');
+        
+        try {
+          const resultadosArchivos = await subirMultiplesArchivos(
+            numeroTicketActual,
+            archivosAdjuntos,
+            (actual, total, nombre) => {
+              btnEnviar.innerHTML = `<i class="fas fa-cloud-upload-alt fa-spin"></i> Subiendo ${actual}/${total}...`;
+              console.log(`📤 ${actual}/${total}: ${nombre}`);
+            }
+          );
+          
+          const exitosos = resultadosArchivos.filter(r => r.success).length;
+          const fallidos = resultadosArchivos.filter(r => !r.success).length;
+          
+          console.log(`✅ Archivos subidos: ${exitosos}/${archivosAdjuntos.length}`);
+          
+          if (fallidos > 0) {
+            mostrarAlerta(`⚠️ ${exitosos} archivo(s) subido(s), ${fallidos} fallaron`, 'warning');
+          } else {
+            mostrarAlerta(`✅ ${exitosos} archivo(s) subido(s) exitosamente`, 'success');
+          }
+        } catch (uploadError) {
+          console.error('❌ Error al subir archivos:', uploadError);
+          mostrarAlerta(`⚠️ Error al subir algunos archivos: ${uploadError.message}`, 'warning');
+        }
+      }
+      
+      btnEnviar.innerHTML = originalText;
+      btnEnviar.disabled = false;
+      
       mostrarConfirmacion(resultado.numeroTicket);
       
-      // ✅ MOSTRAR ESTADO DEL CORREO
       if (resultado.correoEnviado) {
         mostrarAlerta('✅ Ticket guardado y correo enviado exitosamente', 'success');
       } else {
         mostrarAlerta('⚠️ Ticket guardado pero el correo no pudo ser enviado', 'warning');
       }
     } else {
+      btnEnviar.innerHTML = originalText;
+      btnEnviar.disabled = false;
       mostrarAlerta('❌ Error al guardar: ' + resultado.message, 'danger');
     }
     
@@ -630,14 +612,39 @@ async function guardarFormulario() {
   }
 }
 
-
-// ========================================
-// CONFIRMACIÓN
-// ========================================
-function mostrarConfirmacion(numeroTicket) {
+// 🆕 CONFIRMACIÓN CON ENLACE A CARPETA
+function mostrarConfirmacion(numeroTicket, urlCarpeta) {
   document.getElementById('formContainer').style.display = 'none';
   document.getElementById('confirmacionContainer').style.display = 'block';
   document.getElementById('numeroTicket').textContent = numeroTicket;
+  
+  // 🆕 Agregar botón para ver la carpeta de archivos si existe
+  const confirmActions = document.querySelector('.confirmation-actions');
+  
+  if (urlCarpeta) {
+    // Verificar si ya existe el botón
+    let btnCarpeta = document.getElementById('btnVerCarpeta');
+    
+    if (!btnCarpeta) {
+      btnCarpeta = document.createElement('a');
+      btnCarpeta.id = 'btnVerCarpeta';
+      btnCarpeta.href = urlCarpeta;
+      btnCarpeta.target = '_blank';
+      btnCarpeta.className = 'btn-whatsapp-enhanced';
+      btnCarpeta.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
+      btnCarpeta.innerHTML = `
+        <i class="fas fa-folder-open"></i>
+        <span>Ver Carpeta de Archivos</span>
+      `;
+      
+      // Insertar antes del botón de WhatsApp
+      const btnWhatsApp = confirmActions.querySelector('.btn-whatsapp-enhanced');
+      confirmActions.insertBefore(btnCarpeta, btnWhatsApp);
+    } else {
+      btnCarpeta.href = urlCarpeta;
+    }
+  }
+  
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -659,30 +666,32 @@ function nuevoTicket() {
   document.getElementById('nombreUE').value = '';
   document.getElementById('coorD').value = '';
   
+  // Remover botón de carpeta si existe
+  const btnCarpeta = document.getElementById('btnVerCarpeta');
+  if (btnCarpeta) {
+    btnCarpeta.remove();
+  }
+  
+  numeroTicketActual = '';
+  urlCarpetaActual = '';
+  
   updateCharCount();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ========================================
-// FUNCIÓN WHATSAPP MEJORADA
-// ========================================
 function enviarWhatsApp() {
   const numeroTicketElement = document.getElementById('numeroTicket');
   const numeroTicket = numeroTicketElement ? numeroTicketElement.textContent : 'SIGA-2025-0000';
   
-  // Extraer solo el número correlativo (ejemplo: "0007" de "SIGA-2025-0007")
   const numeroCorrelativo = numeroTicket.split('-')[2] || '0000';
   
-  // Obtener datos del usuario y UE
   const nombreUsuario = document.getElementById('nombreUsuario').value || 'Usuario';
   const nombreUE = document.getElementById('nombreUE').value || 'Unidad Ejecutora';
   
-  // 📱 MENSAJE PERSONALIZADO CON TODOS LOS DATOS
   const mensaje = `Hola Daniel, ${nombreUsuario} de ${nombreUE}, He generado la AT Nro ${numeroCorrelativo}
 Un favor, me avisas para enviarte el acceso o llamarte?
 Gracias!`;
   
-  // URL de WhatsApp con el número de Perú
   const url = `https://wa.me/51964374113?text=${encodeURIComponent(mensaje)}`;
   
   console.log('📱 Abriendo WhatsApp con mensaje:', mensaje);
@@ -690,7 +699,6 @@ Gracias!`;
   console.log('🏢 UE:', nombreUE);
   console.log('🎫 Ticket:', numeroCorrelativo);
   
-  // Abrir en nueva pestaña
   window.open(url, '_blank');
 }
 
@@ -900,15 +908,13 @@ function seleccionarEjecutora(item) {
   const inputNombre = document.getElementById('nombreUE');
   const inputCoordinador = document.getElementById('coorD');
   
-  // Rellenar los campos
   inputCodigo.value = item.codigo;
   inputNombre.value = item.nombre;
   inputCoordinador.value = item.coordinadorAbrev;
   
-  // ✅ GUARDAR TODOS LOS DATOS EN DATASET (PARA EL CORREO)
   inputNombre.dataset.coordinadorAbrev = item.coordinadorAbrev || '';
   inputNombre.dataset.correoCoordinador = item.correo || '';
-  inputNombre.dataset.coordinador = item.coordinador || '';  // ✅ NOMBRE COMPLETO
+  inputNombre.dataset.coordinador = item.coordinador || '';
   inputNombre.dataset.analistaDGA = item.analistaDGA || 'DANIEL MARROQUIN';
   
   console.log('📦 Datos guardados en dataset:', {
@@ -918,19 +924,17 @@ function seleccionarEjecutora(item) {
     analistaDGA: item.analistaDGA
   });
   
-  // Ocultar sugerencias
   ocultarSugerencias();
   
-  // Marcar como válidos
   marcarComoValido(inputCodigo);
   marcarComoValido(inputNombre);
   marcarComoValido(inputCoordinador);
   
-  // Mostrar notificación
   mostrarNotificacionEjecutora('✅ Ejecutora seleccionada correctamente', 'success');
   
   busquedaActiva = false;
 }
+
 function marcarComoValido(input) {
   input.classList.remove('is-invalid');
   input.classList.add('is-valid');
