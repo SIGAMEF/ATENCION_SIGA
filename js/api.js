@@ -1,14 +1,15 @@
 /**
- * API PARA CONSULTAR EJECUTORAS
+ * API PARA CONSULTAR EJECUTORAS Y GUARDAR TICKETS
  * Archivo: js/api.js
  * ✅ USA JSONP PARA EVITAR PROBLEMAS DE CORS
+ * ✅ INCLUYE FUNCIÓN PARA GUARDAR TICKETS CON NÚMERO REAL
  */
 
 // ===== CONFIGURACIÓN =====
 const API_CONFIG = {
   // 🔴 PEGAR AQUÍ LA URL DEL WEB APP DE GOOGLE APPS SCRIPT
   URL: 'https://script.google.com/macros/s/AKfycbyuqmaQgpdyxwUXTveTrOailRcZb8y27beTU5Rz_3CsCZlT0y7rOLDAV4sEAeGmCO03/exec',
-  TIMEOUT: 10000,
+  TIMEOUT: 15000,
   CACHE_TIEMPO: 5 * 60 * 1000
 };
 
@@ -17,7 +18,7 @@ let cacheResultados = new Map();
 let cacheTimestamps = new Map();
 
 // ===== FUNCIÓN JSONP (SOLUCIÓN CORS) =====
-function fetchJSONP(url, timeout = 10000) {
+function fetchJSONP(url, timeout = 15000) {
   return new Promise((resolve, reject) => {
     const callbackName = 'jsonp_callback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     const script = document.createElement('script');
@@ -157,6 +158,46 @@ async function obtenerEjecutora(codigo) {
   }
 }
 
+// ===== 🆕 GUARDAR TICKET CON JSONP =====
+async function guardarTicket(datosTicket) {
+  try {
+    console.log('💾 Guardando ticket...', datosTicket);
+    
+    // Construir URL con parámetros
+    const params = new URLSearchParams({
+      action: 'guardarTicket',
+      codigoUE: datosTicket.codigoUE || '',
+      nombreUE: datosTicket.nombreUE || '',
+      coordinadorAbrev: datosTicket.coordinadorAbrev || '',
+      nombreUsuario: datosTicket.nombreUsuario || '',
+      cargoUsuario: datosTicket.cargoUsuario || '',
+      correoUsuario: datosTicket.correoUsuario || '',
+      celularUsuario: datosTicket.celularUsuario || '',
+      modulo: datosTicket.modulo || '',
+      submodulo: datosTicket.submodulo || '',
+      descripcion: datosTicket.descripcion || ''
+    });
+    
+    const url = `${API_CONFIG.URL}?${params.toString()}`;
+    
+    console.log('📡 Enviando ticket via JSONP...');
+    
+    // ✅ USAR JSONP PARA OBTENER LA RESPUESTA REAL DEL SERVIDOR
+    const data = await fetchJSONP(url, API_CONFIG.TIMEOUT);
+    
+    console.log('✅ Respuesta del servidor:', data);
+    
+    return data;
+    
+  } catch (error) {
+    console.error('❌ Error en guardarTicket:', error);
+    return {
+      success: false,
+      message: 'Error al guardar ticket: ' + error.message
+    };
+  }
+}
+
 // ===== VERIFICAR CONEXIÓN =====
 async function verificarConexion() {
   try {
@@ -186,30 +227,10 @@ function limpiarCache() {
   console.log('🗑️ Cache limpiado');
 }
 
-// ===== ESTADÍSTICAS DEL CACHE =====
-function obtenerEstadisticasCache() {
+// ===== ESTADÍSTICAS DE CACHE =====
+function estadisticasCache() {
   return {
-    entradas: cacheResultados.size,
-    tamano: new Blob([JSON.stringify([...cacheResultados])]).size + ' bytes',
-    ultimaActualizacion: cacheTimestamps.size > 0 ? 
-      new Date(Math.max(...cacheTimestamps.values())).toLocaleString('es-PE') : 'N/A'
+    totalEntradas: cacheResultados.size,
+    entradas: Array.from(cacheResultados.keys())
   };
 }
-
-// ===== INICIALIZACIÓN =====
-if (typeof window !== 'undefined') {
-  window.addEventListener('load', function() {
-    console.log('🚀 API de Ejecutoras cargada (JSONP Mode)');
-    console.log('📍 URL configurada:', API_CONFIG.URL);
-    console.log('✅ Sin problemas de CORS');
-  });
-  
-  // Exponer funciones globalmente
-  window.buscarEjecutoras = buscarEjecutoras;
-  window.obtenerEjecutora = obtenerEjecutora;
-  window.verificarConexion = verificarConexion;
-  window.limpiarCache = limpiarCache;
-  window.obtenerEstadisticasCache = obtenerEstadisticasCache;
-}
-
-console.log('✅ api.js cargado correctamente (JSONP Mode - Sin CORS)');
