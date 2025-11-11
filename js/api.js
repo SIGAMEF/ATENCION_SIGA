@@ -148,7 +148,8 @@ async function obtenerEjecutora(codigo) {
   }
 }
 
-// ===== 🆕 GUARDAR TICKET CON JSONP - ✅ CORREGIDO =====
+
+// ===== 🆕 GUARDAR TICKET CON JSONP - ✅ OPTIMIZADO =====
 async function guardarTicket(datosTicket) {
   try {
     console.log('💾 Guardando ticket...', datosTicket);
@@ -168,7 +169,9 @@ async function guardarTicket(datosTicket) {
       modulo: datosTicket.modulo || '',
       submodulo: datosTicket.submodulo || '',
       descripcion: datosTicket.descripcion || '',
-      analistaDGA: datosTicket.analistaDGA || ''
+      analistaDGA: datosTicket.analistaDGA || '',
+      // 🆕 PARÁMETRO PARA ENVÍO ASÍNCRONO DE CORREO
+      envioAsincrono: 'true'
     });
     
     const url = `${API_CONFIG.URL}?${params.toString()}`;
@@ -191,6 +194,8 @@ async function guardarTicket(datosTicket) {
     };
   }
 }
+
+
 
 // ===== 🆕 SUBIR ARCHIVO A GOOGLE DRIVE =====
 async function subirArchivoADrive(numeroTicket, archivo) {

@@ -17,8 +17,8 @@ const subModulos = {
 let archivosAdjuntos = [];
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const MAX_FILES = 5;
-let numeroTicketActual = ''; // 🆕 Para guardar el número de ticket
-let urlCarpetaActual = ''; // 🆕 Para guardar la URL de la carpeta
+let numeroTicketActual = '';
+let urlCarpetaActual = '';
 
 // INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', function() {
@@ -36,6 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
   setTimeout(() => {
     inicializarAutocompletadoEjecutoras();
   }, 500);
+  
+  // 🆕 CARGAR DATOS GUARDADOS DEL CACHE
+  cargarDatosGuardados();
+  
+  // 🆕 GUARDAR DATOS AL CAMBIAR
+  setupAutoSave();
   
   console.log('✅ Sistema inicializado correctamente');
 });
@@ -384,7 +390,164 @@ function mostrarAlerta(mensaje, tipo = 'info') {
   }, 3500);
 }
 
-// 🆕 GUARDAR FORMULARIO CON SUBIDA DE ARCHIVOS
+// 🆕 MENSAJES DIVERTIDOS ALEATORIOS
+const MENSAJES_ENVIO = [
+  { texto: '🚀 Despegando tu solicitud...', icono: 'fa-rocket' },
+  { texto: '🎯 Apuntando al servidor...', icono: 'fa-bullseye' },
+  { texto: '⚡ Enviando a la velocidad de la luz...', icono: 'fa-bolt' },
+  { texto: '🎪 Haciendo magia con tu ticket...', icono: 'fa-magic' },
+  { texto: '🎨 Pintando tu solicitud...', icono: 'fa-palette' },
+  { texto: '🎭 Preparando el show...', icono: 'fa-theater-masks' },
+  { texto: '🎸 Rockeando tu ticket...', icono: 'fa-guitar' },
+  { texto: '🎮 Cargando nivel: Envío...', icono: 'fa-gamepad' },
+  { texto: '🍕 Horneando tu solicitud...', icono: 'fa-pizza-slice' },
+  { texto: '☕ Preparando tu café... digo, ticket...', icono: 'fa-coffee' }
+];
+
+// 🆕 FUNCIÓN PARA BLOQUEAR FORMULARIO
+function bloquearFormulario() {
+  const form = document.getElementById('ticketForm');
+  const inputs = form.querySelectorAll('input, select, textarea, button');
+  
+  inputs.forEach(input => {
+    input.disabled = true;
+    input.style.opacity = '0.6';
+    input.style.cursor = 'not-allowed';
+  });
+  
+  // Agregar overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'form-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 9998;
+    backdrop-filter: blur(3px);
+  `;
+  document.body.appendChild(overlay);
+}
+
+// 🆕 FUNCIÓN PARA DESBLOQUEAR FORMULARIO
+function desbloquearFormulario() {
+  const form = document.getElementById('ticketForm');
+  const inputs = form.querySelectorAll('input, select, textarea, button');
+  
+  inputs.forEach(input => {
+    input.disabled = false;
+    input.style.opacity = '1';
+    input.style.cursor = '';
+  });
+  
+  // Remover overlay
+  const overlay = document.getElementById('form-overlay');
+  if (overlay) {
+    overlay.remove();
+  }
+}
+
+// 🆕 MOSTRAR MENSAJE DIVERTIDO DE CARGA
+function mostrarMensajeCarga() {
+  const mensaje = MENSAJES_ENVIO[Math.floor(Math.random() * MENSAJES_ENVIO.length)];
+  
+  const loadingDiv = document.createElement('div');
+  loadingDiv.id = 'loading-message';
+  loadingDiv.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px 50px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    text-align: center;
+    animation: bounceIn 0.5s ease-out;
+    min-width: 350px;
+  `;
+  
+  loadingDiv.innerHTML = `
+    <div style="margin-bottom: 20px;">
+      <i class="fas ${mensaje.icono} fa-3x" style="animation: spin 2s linear infinite;"></i>
+    </div>
+    <h3 style="margin: 0 0 10px 0; font-size: 1.3rem; font-weight: 700;">
+      ${mensaje.texto}
+    </h3>
+    <div style="margin-top: 15px;">
+      <div class="loading-dots">
+        <span style="animation-delay: 0s;">.</span>
+        <span style="animation-delay: 0.2s;">.</span>
+        <span style="animation-delay: 0.4s;">.</span>
+      </div>
+    </div>
+    <p style="margin: 15px 0 0 0; font-size: 0.9rem; opacity: 0.9;">
+      Por favor, no cierres esta ventana
+    </p>
+  `;
+  
+  document.body.appendChild(loadingDiv);
+  
+  // Agregar estilos de animación
+  if (!document.getElementById('loading-styles')) {
+    const style = document.createElement('style');
+    style.id = 'loading-styles';
+    style.textContent = `
+      @keyframes bounceIn {
+        0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+        50% { transform: translate(-50%, -50%) scale(1.05); }
+        70% { transform: translate(-50%, -50%) scale(0.9); }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .loading-dots span {
+        display: inline-block;
+        font-size: 2rem;
+        animation: bounce 1.4s infinite ease-in-out both;
+        margin: 0 3px;
+      }
+      
+      @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// 🆕 OCULTAR MENSAJE DE CARGA
+function ocultarMensajeCarga() {
+  const loadingDiv = document.getElementById('loading-message');
+  if (loadingDiv) {
+    loadingDiv.style.animation = 'bounceOut 0.5s ease-out';
+    setTimeout(() => loadingDiv.remove(), 500);
+  }
+  
+  // Agregar animación de salida
+  if (!document.getElementById('loading-styles-out')) {
+    const style = document.createElement('style');
+    style.id = 'loading-styles-out';
+    style.textContent = `
+      @keyframes bounceOut {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
+// 🆕 GUARDAR FORMULARIO CON SUBIDA DE ARCHIVOS - OPTIMIZADO
 async function guardarFormulario() {
   const form = document.getElementById('ticketForm');
   let formValid = true;
@@ -392,7 +555,6 @@ async function guardarFormulario() {
 
   console.log('🔎 Iniciando validación del formulario...');
 
-  // [... resto de la validación del formulario - IGUAL QUE ANTES ...]
   const codigoUE = document.getElementById('codigoUE');
   const nombreUE = document.getElementById('nombreUE');
   
@@ -508,7 +670,10 @@ async function guardarFormulario() {
     return;
   }
 
-  // Preparar datos
+  // 🆕 BLOQUEAR FORMULARIO Y MOSTRAR MENSAJE DIVERTIDO
+  bloquearFormulario();
+  mostrarMensajeCarga();
+
   const btnEnviar = document.querySelector('.btn-enviar-compact');
   const originalText = btnEnviar.innerHTML;
   btnEnviar.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
@@ -556,18 +721,24 @@ async function guardarFormulario() {
       console.log('✅ Ticket guardado:', numeroTicketActual);
       console.log('📁 URL Carpeta:', urlCarpetaActual);
       
-      // 🆕 SUBIR ARCHIVOS SI HAY ALGUNO
+      // 🆕 SUBIR ARCHIVOS SI HAY ALGUNO (EN SEGUNDO PLANO)
       if (archivosAdjuntos.length > 0) {
-        btnEnviar.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin"></i> Subiendo archivos...';
-        
-        mostrarAlerta(`📤 Subiendo ${archivosAdjuntos.length} archivo(s)...`, 'info');
+        // Cambiar mensaje
+        const loadingDiv = document.getElementById('loading-message');
+        if (loadingDiv) {
+          loadingDiv.querySelector('h3').textContent = `📤 Subiendo ${archivosAdjuntos.length} archivo(s)...`;
+          loadingDiv.querySelector('i').className = 'fas fa-cloud-upload-alt fa-3x';
+        }
         
         try {
           const resultadosArchivos = await subirMultiplesArchivos(
             numeroTicketActual,
             archivosAdjuntos,
             (actual, total, nombre) => {
-              btnEnviar.innerHTML = `<i class="fas fa-cloud-upload-alt fa-spin"></i> Subiendo ${actual}/${total}...`;
+              const loadingDiv = document.getElementById('loading-message');
+              if (loadingDiv) {
+                loadingDiv.querySelector('h3').textContent = `📤 Subiendo ${actual}/${total}: ${nombre.substring(0, 20)}...`;
+              }
               console.log(`📤 ${actual}/${total}: ${nombre}`);
             }
           );
@@ -579,26 +750,29 @@ async function guardarFormulario() {
           
           if (fallidos > 0) {
             mostrarAlerta(`⚠️ ${exitosos} archivo(s) subido(s), ${fallidos} fallaron`, 'warning');
-          } else {
-            mostrarAlerta(`✅ ${exitosos} archivo(s) subido(s) exitosamente`, 'success');
           }
         } catch (uploadError) {
           console.error('❌ Error al subir archivos:', uploadError);
-          mostrarAlerta(`⚠️ Error al subir algunos archivos: ${uploadError.message}`, 'warning');
         }
       }
+      
+      // 🆕 OCULTAR MENSAJE DE CARGA Y DESBLOQUEAR
+      ocultarMensajeCarga();
+      desbloquearFormulario();
       
       btnEnviar.innerHTML = originalText;
       btnEnviar.disabled = false;
       
-      mostrarConfirmacion(resultado.numeroTicket);
+      mostrarConfirmacion(resultado.numeroTicket, urlCarpetaActual);
       
       if (resultado.correoEnviado) {
         mostrarAlerta('✅ Ticket guardado y correo enviado exitosamente', 'success');
       } else {
-        mostrarAlerta('⚠️ Ticket guardado pero el correo no pudo ser enviado', 'warning');
+        mostrarAlerta('✅ Ticket guardado (correo se enviará en breve)', 'success');
       }
     } else {
+      ocultarMensajeCarga();
+      desbloquearFormulario();
       btnEnviar.innerHTML = originalText;
       btnEnviar.disabled = false;
       mostrarAlerta('❌ Error al guardar: ' + resultado.message, 'danger');
@@ -606,44 +780,19 @@ async function guardarFormulario() {
     
   } catch (error) {
     console.error('❌ Error al guardar:', error);
+    ocultarMensajeCarga();
+    desbloquearFormulario();
     btnEnviar.innerHTML = originalText;
     btnEnviar.disabled = false;
     mostrarAlerta('❌ Error de conexión al guardar el ticket', 'danger');
   }
 }
 
-// 🆕 CONFIRMACIÓN CON ENLACE A CARPETA
+// 🆕 CONFIRMACIÓN SIN BOTÓN DE CARPETA
 function mostrarConfirmacion(numeroTicket, urlCarpeta) {
   document.getElementById('formContainer').style.display = 'none';
   document.getElementById('confirmacionContainer').style.display = 'block';
   document.getElementById('numeroTicket').textContent = numeroTicket;
-  
-  // 🆕 Agregar botón para ver la carpeta de archivos si existe
-  const confirmActions = document.querySelector('.confirmation-actions');
-  
-  if (urlCarpeta) {
-    // Verificar si ya existe el botón
-    let btnCarpeta = document.getElementById('btnVerCarpeta');
-    
-    if (!btnCarpeta) {
-      btnCarpeta = document.createElement('a');
-      btnCarpeta.id = 'btnVerCarpeta';
-      btnCarpeta.href = urlCarpeta;
-      btnCarpeta.target = '_blank';
-      btnCarpeta.className = 'btn-whatsapp-enhanced';
-      btnCarpeta.style.background = 'linear-gradient(135deg, #059669 0%, #047857 100%)';
-      btnCarpeta.innerHTML = `
-        <i class="fas fa-folder-open"></i>
-        <span>Ver Carpeta de Archivos</span>
-      `;
-      
-      // Insertar antes del botón de WhatsApp
-      const btnWhatsApp = confirmActions.querySelector('.btn-whatsapp-enhanced');
-      confirmActions.insertBefore(btnCarpeta, btnWhatsApp);
-    } else {
-      btnCarpeta.href = urlCarpeta;
-    }
-  }
   
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -651,35 +800,33 @@ function mostrarConfirmacion(numeroTicket, urlCarpeta) {
 function nuevoTicket() {
   document.getElementById('confirmacionContainer').style.display = 'none';
   document.getElementById('formContainer').style.display = 'block';
-  document.getElementById('ticketForm').reset();
+  
+  // 🆕 NO resetear el formulario para mantener los datos en caché
+  // Solo limpiar descripción y módulos
+  document.getElementById('descripcion').value = '';
+  document.getElementById('moduloSiga').value = '';
+  document.getElementById('subModuloSiga').value = '';
+  document.getElementById('subModuloSiga').disabled = true;
   
   archivosAdjuntos = [];
   renderFilesList();
   
+  // Limpiar validaciones visuales
   document.querySelectorAll('.is-invalid, .is-valid').forEach(el => {
     el.classList.remove('is-invalid', 'is-valid');
   });
-  
-  document.getElementById('campoOtroCargoRow').style.display = 'none';
-  document.getElementById('otroCargo').required = false;
-  document.getElementById('subModuloSiga').disabled = true;
-  document.getElementById('nombreUE').value = '';
-  document.getElementById('coorD').value = '';
-  
-  // Remover botón de carpeta si existe
-  const btnCarpeta = document.getElementById('btnVerCarpeta');
-  if (btnCarpeta) {
-    btnCarpeta.remove();
-  }
   
   numeroTicketActual = '';
   urlCarpetaActual = '';
   
   updateCharCount();
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  mostrarAlerta('📄 Los datos de tu UE y usuario se mantienen guardados', 'info');
 }
 
-function enviarWhatsApp() {
+// 🆕 ENVIAR WHATSAPP - VERSIÓN SIMPLIFICADA
+async function enviarWhatsApp() {
   const numeroTicketElement = document.getElementById('numeroTicket');
   const numeroTicket = numeroTicketElement ? numeroTicketElement.textContent : 'SIGA-2025-0000';
   
@@ -694,10 +841,21 @@ Gracias!`;
   
   const url = `https://wa.me/51964374113?text=${encodeURIComponent(mensaje)}`;
   
-  console.log('📱 Abriendo WhatsApp con mensaje:', mensaje);
-  console.log('👤 Usuario:', nombreUsuario);
-  console.log('🏢 UE:', nombreUE);
-  console.log('🎫 Ticket:', numeroCorrelativo);
+  console.log('📱 Abriendo WhatsApp Web...');
+  
+  // Abrir WhatsApp Web en nueva pestaña
+  window.open(url, '_blank');
+  
+  mostrarAlerta('✅ Abriendo WhatsApp Web...', 'success');
+}
+
+// Función auxiliar (ya no es necesaria en versión simplificada, pero la dejamos por compatibilidad)
+function enviarWhatsAppTexto(numeroCorrelativo, nombreUsuario, nombreUE) {
+  const mensaje = `Hola Daniel, ${nombreUsuario} de ${nombreUE}, He generado la AT Nro ${numeroCorrelativo}
+Un favor, me avisas para enviarte el acceso o llamarte?
+Gracias!`;
+  
+  const url = `https://wa.me/51964374113?text=${encodeURIComponent(mensaje)}`;
   
   window.open(url, '_blank');
 }
@@ -933,6 +1091,9 @@ function seleccionarEjecutora(item) {
   mostrarNotificacionEjecutora('✅ Ejecutora seleccionada correctamente', 'success');
   
   busquedaActiva = false;
+  
+  // 🆕 Guardar en caché después de seleccionar
+  guardarDatosFormulario();
 }
 
 function marcarComoValido(input) {
@@ -1016,4 +1177,109 @@ function mostrarNotificacionEjecutora(mensaje, tipo = 'info') {
     notif.style.animation = 'slideOutRight 0.3s ease-out';
     setTimeout(() => notif.remove(), 300);
   }, 3000);
+}
+
+// ========================================
+// 🆕 SISTEMA DE CACHÉ PARA FORMULARIO
+// ========================================
+
+// Cargar datos guardados del localStorage
+function cargarDatosGuardados() {
+  try {
+    const datosGuardados = localStorage.getItem('sigaFormData');
+    
+    if (datosGuardados) {
+      const datos = JSON.parse(datosGuardados);
+      
+      console.log('📦 Cargando datos guardados del caché...');
+      
+      // Restaurar datos de UE
+      if (datos.codigoUE) document.getElementById('codigoUE').value = datos.codigoUE;
+      if (datos.nombreUE) document.getElementById('nombreUE').value = datos.nombreUE;
+      if (datos.coordinador) document.getElementById('coorD').value = datos.coordinador;
+      
+      // Restaurar datos del usuario
+      if (datos.nombreUsuario) document.getElementById('nombreUsuario').value = datos.nombreUsuario;
+      if (datos.cargoUsuario) {
+        document.getElementById('cargoUsuario').value = datos.cargoUsuario;
+        if (datos.cargoUsuario === 'OTRO' && datos.otroCargo) {
+          document.getElementById('campoOtroCargoRow').style.display = 'block';
+          document.getElementById('otroCargo').value = datos.otroCargo;
+        }
+      }
+      if (datos.correoUsuario) document.getElementById('correoUsuario').value = datos.correoUsuario;
+      if (datos.celularUsuario) document.getElementById('celularUsuario').value = datos.celularUsuario;
+      
+      // Restaurar datasets
+      const nombreUEField = document.getElementById('nombreUE');
+      if (datos.coordinadorAbrev) nombreUEField.dataset.coordinadorAbrev = datos.coordinadorAbrev;
+      if (datos.correoCoordinador) nombreUEField.dataset.correoCoordinador = datos.correoCoordinador;
+      if (datos.coordinadorCompleto) nombreUEField.dataset.coordinador = datos.coordinadorCompleto;
+      if (datos.analistaDGA) nombreUEField.dataset.analistaDGA = datos.analistaDGA;
+      
+      mostrarAlerta('📦 Datos cargados desde el caché', 'success');
+      console.log('✅ Datos restaurados exitosamente');
+    }
+  } catch (error) {
+    console.error('❌ Error al cargar datos del caché:', error);
+  }
+}
+
+// Configurar auto-guardado
+function setupAutoSave() {
+  const camposAGuardar = [
+    'codigoUE', 'nombreUE', 'coorD',
+    'nombreUsuario', 'cargoUsuario', 'otroCargo',
+    'correoUsuario', 'celularUsuario'
+  ];
+  
+  camposAGuardar.forEach(campoId => {
+    const campo = document.getElementById(campoId);
+    if (campo) {
+      campo.addEventListener('change', guardarDatosFormulario);
+      campo.addEventListener('blur', guardarDatosFormulario);
+    }
+  });
+  
+  console.log('💾 Sistema de auto-guardado activado');
+}
+
+// Guardar datos del formulario en localStorage
+function guardarDatosFormulario() {
+  try {
+    const nombreUEField = document.getElementById('nombreUE');
+    
+    const datos = {
+      codigoUE: document.getElementById('codigoUE').value,
+      nombreUE: nombreUEField.value,
+      coordinador: document.getElementById('coorD').value,
+      nombreUsuario: document.getElementById('nombreUsuario').value,
+      cargoUsuario: document.getElementById('cargoUsuario').value,
+      otroCargo: document.getElementById('otroCargo').value,
+      correoUsuario: document.getElementById('correoUsuario').value,
+      celularUsuario: document.getElementById('celularUsuario').value,
+      // Guardar datasets también
+      coordinadorAbrev: nombreUEField.dataset.coordinadorAbrev || '',
+      correoCoordinador: nombreUEField.dataset.correoCoordinador || '',
+      coordinadorCompleto: nombreUEField.dataset.coordinador || '',
+      analistaDGA: nombreUEField.dataset.analistaDGA || ''
+    };
+    
+    localStorage.setItem('sigaFormData', JSON.stringify(datos));
+    console.log('💾 Datos guardados en caché');
+    
+  } catch (error) {
+    console.error('❌ Error al guardar datos:', error);
+  }
+}
+
+// Limpiar caché (opcional)
+function limpiarCacheFormulario() {
+  try {
+    localStorage.removeItem('sigaFormData');
+    console.log('🗑️ Caché del formulario limpiado');
+    mostrarAlerta('🗑️ Caché limpiado exitosamente', 'info');
+  } catch (error) {
+    console.error('❌ Error al limpiar caché:', error);
+  }
 }
