@@ -355,3 +355,47 @@ function estadisticasCache() {
     entradas: Array.from(cacheResultados.keys())
   };
 }
+// ===== 🆕 OBTENER VERSIONES =====
+async function obtenerVersiones() {
+  try {
+    console.log('📡 Obteniendo versiones desde Google Sheets...');
+    
+    const url = `${API_CONFIG.URL}?action=obtenerVersiones`;
+    
+    const data = await fetchJSONP(url, API_CONFIG.TIMEOUT);
+    
+    console.log('✅ Versiones obtenidas:', data);
+    
+    return data;
+    
+  } catch (error) {
+    console.error('❌ Error al obtener versiones:', error);
+    return {
+      success: false,
+      message: 'Error de conexión: ' + error.message,
+      versiones: []
+    };
+  }
+}
+
+// ===== VERIFICAR CONEXIÓN =====
+async function verificarConexion() {
+  try {
+    console.log('🔌 Verificando conexión con Google Sheets...');
+    
+    const url = `${API_CONFIG.URL}?action=test`;
+    
+    const data = await fetchJSONP(url, API_CONFIG.TIMEOUT);
+    
+    console.log('✅ Conexión exitosa:', data);
+    
+    return data;
+    
+  } catch (error) {
+    console.error('❌ Error de conexión:', error);
+    return {
+      success: false,
+      message: 'No se pudo conectar con el servidor: ' + error.message
+    };
+  }
+}
